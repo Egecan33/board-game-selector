@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "weights": {
+    "group_size": 1.0,
+    "mode": 1.2,
+    "session_length": 0.9,
+    "complexity": 1.3,
+    "theme": 0.4,
+    "campaign": 0.8,
+    "solo": 0.8,
+    "randomness": 0.6
+  },
+  "questions": [
+    {
+      "key": "group_size",
+      "text": "How many players will usually play?",
+      "options": [
+        {
+          "label": "Solo (just me)",
+          "value": "solo"
+        },
+        {
+          "label": "2 players",
+          "value": "2"
+        },
+        {
+          "label": "3\u20134 players",
+          "value": "3-4"
+        },
+        {
+          "label": "5+ players",
+          "value": "5+"
+        }
+      ]
+    },
+    {
+      "key": "mode",
+      "text": "Do you want to play cooperatively or competitively?",
+      "options": [
+        {
+          "label": "Cooperative (same team)",
+          "value": "coop"
+        },
+        {
+          "label": "Competitive (against each other)",
+          "value": "comp"
+        },
+        {
+          "label": "No strong preference",
+          "value": "either"
+        }
+      ]
+    },
+    {
+      "key": "session_length",
+      "text": "How much time do you usually have per session?",
+      "options": [
+        {
+          "label": "Up to 60 minutes",
+          "value": "short"
+        },
+        {
+          "label": "60\u201390 minutes",
+          "value": "medium"
+        },
+        {
+          "label": "90\u2013150 minutes",
+          "value": "long"
+        },
+        {
+          "label": "150+ minutes",
+          "value": "epic"
+        }
+      ]
+    },
+    {
+      "key": "complexity",
+      "text": "What complexity are you looking for?",
+      "options": [
+        {
+          "label": "Light",
+          "value": "light"
+        },
+        {
+          "label": "Medium",
+          "value": "medium"
+        },
+        {
+          "label": "Heavy",
+          "value": "heavy"
+        },
+        {
+          "label": "Anywhere is fine",
+          "value": "any"
+        }
+      ]
+    },
+    {
+      "key": "theme",
+      "text": "Pick a theme that excites you most right now",
+      "options": [
+        {
+          "label": "Animals & Conservation",
+          "value": "animals"
+        },
+        {
+          "label": "Exploration & Story",
+          "value": "exploration"
+        },
+        {
+          "label": "Survival City\u2011building",
+          "value": "survival"
+        },
+        {
+          "label": "Sci\u2011Fi & Space",
+          "value": "sci-fi"
+        },
+        {
+          "label": "Innovation & Civilization",
+          "value": "innovation"
+        },
+        {
+          "label": "No strong preference",
+          "value": "any"
+        }
+      ]
+    },
+    {
+      "key": "campaign",
+      "text": "Do you want a campaign that continues across sessions?",
+      "options": [
+        {
+          "label": "Yes, campaign/progression",
+          "value": "campaign_yes"
+        },
+        {
+          "label": "No, one\u2011shot sessions",
+          "value": "campaign_no"
+        },
+        {
+          "label": "Either is fine",
+          "value": "either"
+        }
+      ]
+    },
+    {
+      "key": "solo",
+      "text": "Is solo mode important to you?",
+      "options": [
+        {
+          "label": "Must have solo",
+          "value": "solo_required"
+        },
+        {
+          "label": "Nice to have",
+          "value": "solo_nice"
+        },
+        {
+          "label": "Not needed",
+          "value": "solo_no"
+        }
+      ]
+    },
+    {
+      "key": "randomness",
+      "text": "How much randomness do you prefer?",
+      "options": [
+        {
+          "label": "Low \u2013 strategy over luck",
+          "value": "low"
+        },
+        {
+          "label": "Medium \u2013 some swings are fun",
+          "value": "medium"
+        },
+        {
+          "label": "High \u2013 embrace the chaos",
+          "value": "high"
+        },
+        {
+          "label": "No preference",
+          "value": "any"
+        }
+      ]
+    }
+  ]
+}

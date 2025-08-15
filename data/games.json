@@ -1,0 +1,127 @@
+[
+  {
+    "id": "seti",
+    "name": "S.E.T.I.",
+    "bgg_slug": "seti-search-for-extraterrestrial-intelligence",
+    "players_min": 2,
+    "players_max": 4,
+    "solo": false,
+    "coop": false,
+    "playtime_min": 60,
+    "playtime_max": 90,
+    "complexity": 2.8,
+    "themes": [
+      "sci-fi",
+      "space",
+      "research"
+    ],
+    "mechanics": [
+      "worker-placement",
+      "engine-building",
+      "set-collection"
+    ],
+    "image_url": "",
+    "notes": "Competitive mid-weight game about searching the cosmos."
+  },
+  {
+    "id": "ark_nova",
+    "name": "Ark Nova",
+    "bgg_slug": "ark-nova",
+    "players_min": 1,
+    "players_max": 4,
+    "solo": true,
+    "coop": false,
+    "playtime_min": 90,
+    "playtime_max": 150,
+    "complexity": 3.8,
+    "themes": [
+      "animals",
+      "zoo",
+      "conservation"
+    ],
+    "mechanics": [
+      "tableau",
+      "engine-building",
+      "hand-management",
+      "action-selection"
+    ],
+    "image_url": "",
+    "notes": "Heavy competitive euro about building a modern zoo."
+  },
+  {
+    "id": "sleeping_gods",
+    "name": "Sleeping Gods",
+    "bgg_slug": "sleeping-gods",
+    "players_min": 1,
+    "players_max": 4,
+    "solo": true,
+    "coop": true,
+    "playtime_min": 60,
+    "playtime_max": 120,
+    "complexity": 3.2,
+    "themes": [
+      "exploration",
+      "narrative",
+      "fantasy",
+      "adventure"
+    ],
+    "mechanics": [
+      "campaign",
+      "storybook",
+      "cooperative",
+      "testing-skills"
+    ],
+    "image_url": "",
+    "notes": "Cooperative campaign of open-world exploration and story."
+  },
+  {
+    "id": "frostpunk",
+    "name": "Frostpunk: The Board Game",
+    "bgg_slug": "frostpunk-the-board-game",
+    "players_min": 1,
+    "players_max": 4,
+    "solo": true,
+    "coop": true,
+    "playtime_min": 120,
+    "playtime_max": 150,
+    "complexity": 3.9,
+    "themes": [
+      "survival",
+      "city-building",
+      "post-apocalyptic"
+    ],
+    "mechanics": [
+      "worker-placement",
+      "resource-management",
+      "cooperative",
+      "morale"
+    ],
+    "image_url": "",
+    "notes": "Tough cooperative survival city-builder with moral choices."
+  },
+  {
+    "id": "inventions",
+    "name": "Inventions: Evolution of Ideas",
+    "bgg_slug": "inventions-evolution-of-ideas",
+    "players_min": 1,
+    "players_max": 4,
+    "solo": true,
+    "coop": false,
+    "playtime_min": 90,
+    "playtime_max": 150,
+    "complexity": 4.2,
+    "themes": [
+      "innovation",
+      "civilization",
+      "history"
+    ],
+    "mechanics": [
+      "action-points",
+      "network",
+      "heavy-euro",
+      "hand-management"
+    ],
+    "image_url": "",
+    "notes": "Heavy competitive euro about spreading inventions through history."
+  }
+]
