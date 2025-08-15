@@ -8,7 +8,17 @@
     "theme": 0.4,
     "campaign": 0.8,
     "solo": 0.8,
-    "randomness": 0.6
+    "randomness": 0.6,
+    "vibe_night": 1.2,
+    "decision_style": 1.0,
+    "map_aesthetic": 0.7,
+    "pressure_tolerance": 1.0,
+    "project_scope": 1.1,
+    "risk_attitude": 0.6,
+    "puzzle_flavor": 0.9,
+    "moral_dilemmas": 0.8,
+    "collection_drive": 0.7,
+    "solo_vibes": 0.8
   },
   "questions": [
     {
@@ -180,6 +190,230 @@
         {
           "label": "No preference",
           "value": "any"
+        }
+      ]
+    },
+    {
+      "key": "vibe_night",
+      "text": "What vibe do you want for game night?",
+      "options": [
+        {
+          "label": "Deep think & long plans",
+          "value": "deep_think"
+        },
+        {
+          "label": "Steady build & small wins",
+          "value": "steady_build"
+        },
+        {
+          "label": "Tense pressure & hard calls",
+          "value": "desperate_survive"
+        },
+        {
+          "label": "Story-first, surprises welcome",
+          "value": "story_odyssey"
+        },
+        {
+          "label": "Curious discovery & science",
+          "value": "curious_discovery"
+        }
+      ]
+    },
+    {
+      "key": "decision_style",
+      "text": "When choices get tough, you mostly...",
+      "options": [
+        {
+          "label": "Optimize numbers ruthlessly",
+          "value": "optimize_numbers"
+        },
+        {
+          "label": "Make a long-term plan and stick to it",
+          "value": "plan_long_term"
+        },
+        {
+          "label": "Improvise based on the moment",
+          "value": "improvise_on_the_fly"
+        },
+        {
+          "label": "Follow your heart / theme",
+          "value": "follow_heart"
+        }
+      ]
+    },
+    {
+      "key": "map_aesthetic",
+      "text": "Pick a map aesthetic that feels coolest:",
+      "options": [
+        {
+          "label": "Star charts & signals",
+          "value": "star_charts"
+        },
+        {
+          "label": "Rugged, frozen settlement",
+          "value": "rugged_wasteland"
+        },
+        {
+          "label": "Lush habitats & enclosures",
+          "value": "lush_habitats"
+        },
+        {
+          "label": "Ancient routes & civilizations",
+          "value": "ancient_routes"
+        },
+        {
+          "label": "Hand-drawn travel journal",
+          "value": "hand_drawn_journal"
+        }
+      ]
+    },
+    {
+      "key": "pressure_tolerance",
+      "text": "How much time pressure/stress do you enjoy in a game?",
+      "options": [
+        {
+          "label": "Low — let me breathe",
+          "value": "low_pressure"
+        },
+        {
+          "label": "Moderate — some urgency is fine",
+          "value": "moderate_pressure"
+        },
+        {
+          "label": "High — bring the heat",
+          "value": "high_pressure"
+        },
+        {
+          "label": "Rollercoaster — quiet then spikes",
+          "value": "swingy_pressure"
+        }
+      ]
+    },
+    {
+      "key": "project_scope",
+      "text": "Which project sounds most satisfying right now?",
+      "options": [
+        {
+          "label": "Perfecting a complex system",
+          "value": "perfect_system"
+        },
+        {
+          "label": "Exploring the unknown",
+          "value": "explore_unknown"
+        },
+        {
+          "label": "Keeping people alive through crisis",
+          "value": "keep_alive"
+        },
+        {
+          "label": "Building a sanctuary for wildlife",
+          "value": "build_sanctuary"
+        },
+        {
+          "label": "Sparking a renaissance of ideas",
+          "value": "spark_ideas"
+        }
+      ]
+    },
+    {
+      "key": "risk_attitude",
+      "text": "Your risk attitude tonight is...",
+      "options": [
+        {
+          "label": "Avoid variance; steady plan",
+          "value": "avoid_variance"
+        },
+        {
+          "label": "Take measured risks",
+          "value": "measured_risks"
+        },
+        {
+          "label": "Push your luck",
+          "value": "push_luck"
+        }
+      ]
+    },
+    {
+      "key": "puzzle_flavor",
+      "text": "Pick your favorite flavor of puzzle:",
+      "options": [
+        {
+          "label": "Efficiency engine",
+          "value": "efficiency_engine"
+        },
+        {
+          "label": "Navigation & wayfinding",
+          "value": "navigation"
+        },
+        {
+          "label": "Workforce / task allocation",
+          "value": "workforce"
+        },
+        {
+          "label": "Tradeoffs across multiple goals",
+          "value": "multiobjective"
+        },
+        {
+          "label": "Narrative problem solving",
+          "value": "narrative_problem"
+        }
+      ]
+    },
+    {
+      "key": "moral_dilemmas",
+      "text": "How do you feel about moral trade-offs in games?",
+      "options": [
+        {
+          "label": "Love them — tough calls are engaging",
+          "value": "love_morals"
+        },
+        {
+          "label": "Okay if they feel earned",
+          "value": "ok_if_earned"
+        },
+        {
+          "label": "Prefer clean, apolitical choices",
+          "value": "prefer_clean"
+        }
+      ]
+    },
+    {
+      "key": "collection_drive",
+      "text": "Collecting sets or building networks?",
+      "options": [
+        {
+          "label": "Collecting sets feels great",
+          "value": "love_sets"
+        },
+        {
+          "label": "I prefer web/network growth",
+          "value": "prefer_networks"
+        },
+        {
+          "label": "Either is fine",
+          "value": "either_sets_networks"
+        }
+      ]
+    },
+    {
+      "key": "solo_vibes",
+      "text": "If you played alone tonight, what vibe fits?",
+      "options": [
+        {
+          "label": "Quiet engine to optimize",
+          "value": "quiet_engine"
+        },
+        {
+          "label": "Relentless survival challenge",
+          "value": "survival_challenge"
+        },
+        {
+          "label": "Story escape & immersion",
+          "value": "story_escape"
+        },
+        {
+          "label": "I wouldn’t play solo",
+          "value": "no_solo_tonight"
         }
       ]
     }

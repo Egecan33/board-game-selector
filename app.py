@@ -354,6 +354,379 @@ def score_game(
         details["randomness"] = s * weights.get("randomness", 1.0)
         total += details["randomness"]
 
+    # --- EXTRA TRAIT MAPPERS (personality-style) ---
+
+    # Helper: get value safely
+    def _val(key):
+        return answers.get(key)
+
+    # vibe_night -> soft preferences by game id
+    if _val("vibe_night"):
+        pref = {
+            "deep_think": {
+                "inventions": 1.0,
+                "ark_nova": 0.9,
+                "seti": 0.8,
+                "sleeping_gods": 0.6,
+                "frostpunk": 0.4,
+            },
+            "steady_build": {
+                "ark_nova": 1.0,
+                "seti": 0.9,
+                "inventions": 0.7,
+                "sleeping_gods": 0.5,
+                "frostpunk": 0.4,
+            },
+            "desperate_survive": {
+                "frostpunk": 1.0,
+                "sleeping_gods": 0.6,
+                "seti": 0.4,
+                "ark_nova": 0.4,
+                "inventions": 0.3,
+            },
+            "story_odyssey": {
+                "sleeping_gods": 1.0,
+                "frostpunk": 0.6,
+                "ark_nova": 0.4,
+                "seti": 0.4,
+                "inventions": 0.4,
+            },
+            "curious_discovery": {
+                "seti": 1.0,
+                "sleeping_gods": 0.8,
+                "ark_nova": 0.6,
+                "inventions": 0.6,
+                "frostpunk": 0.4,
+            },
+        }
+        s = pref.get(answers["vibe_night"], {}).get(game.id, 0.5)
+        details["vibe_night"] = s * weights.get("vibe_night", 1.0)
+        total += details["vibe_night"]
+
+    # decision_style
+    if _val("decision_style"):
+        pref = {
+            "optimize_numbers": {
+                "inventions": 1.0,
+                "ark_nova": 0.9,
+                "seti": 0.8,
+                "frostpunk": 0.5,
+                "sleeping_gods": 0.5,
+            },
+            "plan_long_term": {
+                "ark_nova": 1.0,
+                "inventions": 0.9,
+                "seti": 0.7,
+                "sleeping_gods": 0.6,
+                "frostpunk": 0.6,
+            },
+            "improvise_on_the_fly": {
+                "sleeping_gods": 1.0,
+                "frostpunk": 0.8,
+                "seti": 0.5,
+                "ark_nova": 0.4,
+                "inventions": 0.4,
+            },
+            "follow_heart": {
+                "sleeping_gods": 0.9,
+                "ark_nova": 0.7,
+                "frostpunk": 0.7,
+                "seti": 0.5,
+                "inventions": 0.5,
+            },
+        }
+        s = pref.get(answers["decision_style"], {}).get(game.id, 0.5)
+        details["decision_style"] = s * weights.get("decision_style", 1.0)
+        total += details["decision_style"]
+
+    # map_aesthetic
+    if _val("map_aesthetic"):
+        pref = {
+            "star_charts": {
+                "seti": 1.0,
+                "sleeping_gods": 0.6,
+                "inventions": 0.5,
+                "ark_nova": 0.4,
+                "frostpunk": 0.4,
+            },
+            "rugged_wasteland": {
+                "frostpunk": 1.0,
+                "sleeping_gods": 0.5,
+                "seti": 0.5,
+                "ark_nova": 0.4,
+                "inventions": 0.4,
+            },
+            "lush_habitats": {
+                "ark_nova": 1.0,
+                "sleeping_gods": 0.6,
+                "seti": 0.4,
+                "inventions": 0.4,
+                "frostpunk": 0.3,
+            },
+            "ancient_routes": {
+                "inventions": 1.0,
+                "sleeping_gods": 0.7,
+                "ark_nova": 0.5,
+                "seti": 0.4,
+                "frostpunk": 0.4,
+            },
+            "hand_drawn_journal": {
+                "sleeping_gods": 1.0,
+                "seti": 0.6,
+                "ark_nova": 0.5,
+                "inventions": 0.5,
+                "frostpunk": 0.4,
+            },
+        }
+        s = pref.get(answers["map_aesthetic"], {}).get(game.id, 0.5)
+        details["map_aesthetic"] = s * weights.get("map_aesthetic", 1.0)
+        total += details["map_aesthetic"]
+
+    # pressure_tolerance
+    if _val("pressure_tolerance"):
+        pref = {
+            "low_pressure": {
+                "ark_nova": 0.9,
+                "inventions": 0.9,
+                "seti": 0.8,
+                "sleeping_gods": 0.6,
+                "frostpunk": 0.3,
+            },
+            "moderate_pressure": {
+                "ark_nova": 0.9,
+                "inventions": 0.8,
+                "seti": 0.8,
+                "sleeping_gods": 0.7,
+                "frostpunk": 0.6,
+            },
+            "high_pressure": {
+                "frostpunk": 1.0,
+                "sleeping_gods": 0.7,
+                "seti": 0.5,
+                "ark_nova": 0.4,
+                "inventions": 0.4,
+            },
+            "swingy_pressure": {
+                "sleeping_gods": 1.0,
+                "seti": 0.7,
+                "ark_nova": 0.6,
+                "inventions": 0.6,
+                "frostpunk": 0.6,
+            },
+        }
+        s = pref.get(answers["pressure_tolerance"], {}).get(game.id, 0.5)
+        details["pressure_tolerance"] = s * weights.get("pressure_tolerance", 1.0)
+        total += details["pressure_tolerance"]
+
+    # project_scope
+    if _val("project_scope"):
+        pref = {
+            "perfect_system": {
+                "inventions": 1.0,
+                "ark_nova": 0.9,
+                "seti": 0.7,
+                "sleeping_gods": 0.5,
+                "frostpunk": 0.5,
+            },
+            "explore_unknown": {
+                "sleeping_gods": 1.0,
+                "seti": 0.9,
+                "ark_nova": 0.5,
+                "inventions": 0.5,
+                "frostpunk": 0.5,
+            },
+            "keep_alive": {
+                "frostpunk": 1.0,
+                "sleeping_gods": 0.7,
+                "seti": 0.4,
+                "ark_nova": 0.4,
+                "inventions": 0.4,
+            },
+            "build_sanctuary": {
+                "ark_nova": 1.0,
+                "sleeping_gods": 0.6,
+                "seti": 0.4,
+                "inventions": 0.4,
+                "frostpunk": 0.3,
+            },
+            "spark_ideas": {
+                "inventions": 1.0,
+                "ark_nova": 0.7,
+                "seti": 0.6,
+                "sleeping_gods": 0.5,
+                "frostpunk": 0.4,
+            },
+        }
+        s = pref.get(answers["project_scope"], {}).get(game.id, 0.5)
+        details["project_scope"] = s * weights.get("project_scope", 1.0)
+        total += details["project_scope"]
+
+    # risk_attitude
+    if _val("risk_attitude"):
+        pref = {
+            "avoid_variance": {
+                "inventions": 0.9,
+                "ark_nova": 0.9,
+                "seti": 0.8,
+                "frostpunk": 0.4,
+                "sleeping_gods": 0.5,
+            },
+            "measured_risks": {
+                "ark_nova": 0.9,
+                "inventions": 0.8,
+                "seti": 0.7,
+                "sleeping_gods": 0.7,
+                "frostpunk": 0.6,
+            },
+            "push_luck": {
+                "sleeping_gods": 1.0,
+                "frostpunk": 0.8,
+                "seti": 0.6,
+                "ark_nova": 0.5,
+                "inventions": 0.5,
+            },
+        }
+        s = pref.get(answers["risk_attitude"], {}).get(game.id, 0.5)
+        details["risk_attitude"] = s * weights.get("risk_attitude", 1.0)
+        total += details["risk_attitude"]
+
+    # puzzle_flavor
+    if _val("puzzle_flavor"):
+        pref = {
+            "efficiency_engine": {
+                "ark_nova": 1.0,
+                "inventions": 1.0,
+                "seti": 0.8,
+                "frostpunk": 0.5,
+                "sleeping_gods": 0.5,
+            },
+            "navigation": {
+                "sleeping_gods": 1.0,
+                "seti": 0.7,
+                "ark_nova": 0.5,
+                "inventions": 0.5,
+                "frostpunk": 0.5,
+            },
+            "workforce": {
+                "seti": 1.0,
+                "frostpunk": 0.9,
+                "ark_nova": 0.6,
+                "inventions": 0.6,
+                "sleeping_gods": 0.6,
+            },
+            "multiobjective": {
+                "inventions": 1.0,
+                "ark_nova": 0.9,
+                "seti": 0.7,
+                "frostpunk": 0.6,
+                "sleeping_gods": 0.6,
+            },
+            "narrative_problem": {
+                "sleeping_gods": 1.0,
+                "frostpunk": 0.8,
+                "seti": 0.5,
+                "ark_nova": 0.4,
+                "inventions": 0.4,
+            },
+        }
+        s = pref.get(answers["puzzle_flavor"], {}).get(game.id, 0.5)
+        details["puzzle_flavor"] = s * weights.get("puzzle_flavor", 1.0)
+        total += details["puzzle_flavor"]
+
+    # moral_dilemmas
+    if _val("moral_dilemmas"):
+        pref = {
+            "love_morals": {
+                "frostpunk": 1.0,
+                "sleeping_gods": 0.8,
+                "inventions": 0.5,
+                "ark_nova": 0.5,
+                "seti": 0.5,
+            },
+            "ok_if_earned": {
+                "sleeping_gods": 0.9,
+                "frostpunk": 0.8,
+                "inventions": 0.6,
+                "ark_nova": 0.6,
+                "seti": 0.6,
+            },
+            "prefer_clean": {
+                "ark_nova": 0.9,
+                "inventions": 0.9,
+                "seti": 0.8,
+                "sleeping_gods": 0.5,
+                "frostpunk": 0.3,
+            },
+        }
+        s = pref.get(answers["moral_dilemmas"], {}).get(game.id, 0.5)
+        details["moral_dilemmas"] = s * weights.get("moral_dilemmas", 1.0)
+        total += details["moral_dilemmas"]
+
+    # collection_drive
+    if _val("collection_drive"):
+        pref = {
+            "love_sets": {
+                "seti": 1.0,
+                "ark_nova": 0.9,
+                "inventions": 0.6,
+                "sleeping_gods": 0.5,
+                "frostpunk": 0.5,
+            },
+            "prefer_networks": {
+                "inventions": 1.0,
+                "ark_nova": 0.7,
+                "seti": 0.6,
+                "sleeping_gods": 0.5,
+                "frostpunk": 0.5,
+            },
+            "either_sets_networks": {
+                "ark_nova": 0.7,
+                "inventions": 0.7,
+                "seti": 0.6,
+                "sleeping_gods": 0.6,
+                "frostpunk": 0.6,
+            },
+        }
+        s = pref.get(answers["collection_drive"], {}).get(game.id, 0.5)
+        details["collection_drive"] = s * weights.get("collection_drive", 1.0)
+        total += details["collection_drive"]
+
+    # solo_vibes (softly reinforces solo-capable titles but still subtle)
+    if _val("solo_vibes"):
+        pref = {
+            "quiet_engine": {
+                "ark_nova": 0.9,
+                "inventions": 0.9,
+                "seti": 0.5,
+                "sleeping_gods": 0.7,
+                "frostpunk": 0.7,
+            },
+            "survival_challenge": {
+                "frostpunk": 1.0,
+                "sleeping_gods": 0.7,
+                "ark_nova": 0.6,
+                "inventions": 0.5,
+                "seti": 0.3,
+            },
+            "story_escape": {
+                "sleeping_gods": 1.0,
+                "ark_nova": 0.6,
+                "inventions": 0.5,
+                "seti": 0.4,
+                "frostpunk": 0.6,
+            },
+            "no_solo_tonight": {
+                "seti": 0.8,
+                "ark_nova": 0.5,
+                "inventions": 0.5,
+                "sleeping_gods": 0.4,
+                "frostpunk": 0.4,
+            },
+        }
+        s = pref.get(answers["solo_vibes"], {}).get(game.id, 0.5)
+        details["solo_vibes"] = s * weights.get("solo_vibes", 1.0)
+        total += details["solo_vibes"]
+
     return total, details
 
 
