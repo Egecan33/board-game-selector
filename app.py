@@ -1,4 +1,3 @@
-
 # app.py — Streamlit Board Game Recommender
 import os, json, time, math, random, uuid, datetime
 from pathlib import Path
@@ -10,6 +9,9 @@ import streamlit as st
 from pydantic import BaseModel, Field, ValidationError
 from dotenv import load_dotenv
 
+# ✨ NEW: Supabase client import
+from supabase import create_client
+
 # Load .env if present
 load_dotenv()
 
@@ -20,6 +22,19 @@ RESPONSES_CSV = Path(__file__).parent / "responses.csv"
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "change-me")
+
+# ✨ NEW: Supabase environment + client
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+supabase = None
+if SUPABASE_URL and SUPABASE_ANON_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+    except Exception as e:
+        supabase = None
+        # Don't crash the app if misconfigured; show a gentle note later.
+        st.sidebar.warning(f"Supabase init failed: {e}")
+
 
 # ------------------------------ Models --------------------------------------
 class Game(BaseModel):
@@ -38,10 +53,12 @@ class Game(BaseModel):
     image_url: str = ""
     notes: str = ""
 
+
 class Questions(BaseModel):
     version: int = 1
     weights: Dict[str, float]
     questions: List[Dict[str, Any]]
+
 
 # --------------------------- Storage helpers --------------------------------
 def load_games() -> List[Game]:
@@ -56,8 +73,12 @@ def load_games() -> List[Game]:
             st.warning(f"Skipping invalid game: {g.get('name', g.get('id'))} — {e}")
     return out
 
+
 def save_games(games: List[Game]):
-    GAMES_PATH.write_text(json.dumps([g.model_dump() for g in games], indent=2), encoding="utf-8")
+    GAMES_PATH.write_text(
+        json.dumps([g.model_dump() for g in games], indent=2), encoding="utf-8"
+    )
+
 
 def load_questions() -> Questions:
     if not QUESTIONS_PATH.exists():
@@ -65,15 +86,54 @@ def load_questions() -> Questions:
     data = json.loads(QUESTIONS_PATH.read_text(encoding="utf-8"))
     return Questions(**data)
 
+
 def save_questions(q: Questions):
     QUESTIONS_PATH.write_text(json.dumps(q.model_dump(), indent=2), encoding="utf-8")
 
+
 def append_response(row: Dict[str, Any]):
+    # (kept) Save to CSV locally
     df = pd.DataFrame([row])
     if RESPONSES_CSV.exists():
         df.to_csv(RESPONSES_CSV, mode="a", header=False, index=False, encoding="utf-8")
     else:
         df.to_csv(RESPONSES_CSV, index=False, encoding="utf-8")
+
+    # ✨ NEW: Also save to Supabase if configured
+    if supabase:
+        try:
+            payload = {
+                "ts": row["ts"],
+                "user": row["user"],
+                # Store as JSON (dict), not string
+                "answers_json": (
+                    json.loads(row["answers_json"])
+                    if isinstance(row["answers_json"], str)
+                    else row["answers_json"]
+                ),
+                "ranking_json": (
+                    json.loads(row["ranking_json"])
+                    if isinstance(row["ranking_json"], str)
+                    else row["ranking_json"]
+                ),
+            }
+            supabase.table("survey_responses").insert(payload).execute()
+        except Exception as e:
+            st.error(f"Supabase insert failed: {e}")
+
+
+# ✨ NEW: Helper to fetch all responses from Supabase (used by Leaderboard tab)
+def fetch_all_responses() -> pd.DataFrame:
+    if not supabase:
+        return pd.DataFrame()
+    try:
+        res = supabase.table("survey_responses").select("*").execute()
+        if res.data:
+            return pd.DataFrame(res.data)
+    except Exception as e:
+        st.error(f"Supabase fetch failed: {e}")
+    return pd.DataFrame()
+
 
 # --------------------------- GPT integration --------------------------------
 def propose_questions_via_gpt(games: List[Game], n: int = 8) -> Questions:
@@ -120,6 +180,7 @@ Guidelines:
     try:
         # New-style SDK
         from openai import OpenAI
+
         client = OpenAI(api_key=OPENAI_API_KEY)
         resp = client.chat.completions.create(
             model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
@@ -131,6 +192,7 @@ Guidelines:
         # Legacy fallback
         try:
             import openai
+
             openai.api_key = OPENAI_API_KEY
             resp = openai.ChatCompletion.create(
                 model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
@@ -150,8 +212,11 @@ Guidelines:
         st.code(content)
         st.stop()
 
+
 # ---------------------------- Scoring logic ---------------------------------
-def score_game(game: Game, answers: Dict[str, str], weights: Dict[str, float]) -> Tuple[float, Dict[str, float]]:
+def score_game(
+    game: Game, answers: Dict[str, str], weights: Dict[str, float]
+) -> Tuple[float, Dict[str, float]]:
     """
     Returns (total_score, details) where details is per-question contribution.
     All contributions are positive numbers (higher is better). We normalize per-question to [0,1].
@@ -160,7 +225,8 @@ def score_game(game: Game, answers: Dict[str, str], weights: Dict[str, float]) -
     total = 0.0
 
     # helper to clamp
-    def clamp01(x): return max(0.0, min(1.0, x))
+    def clamp01(x):
+        return max(0.0, min(1.0, x))
 
     # group_size
     if "group_size" in answers:
@@ -169,9 +235,17 @@ def score_game(game: Game, answers: Dict[str, str], weights: Dict[str, float]) -
             s = 1.0 if game.solo else 0.0
         elif v == "2":
             # favor games that allow 2; max if (players_min<=2<=players_max)
-            s = 1.0 if (game.players_min <= 2 <= game.players_max) else 0.5 if game.players_min <= 3 else 0.0
+            s = (
+                1.0
+                if (game.players_min <= 2 <= game.players_max)
+                else 0.5 if game.players_min <= 3 else 0.0
+            )
         elif v == "3-4":
-            s = 1.0 if game.players_max >= 4 and game.players_min <= 3 else 0.5 if game.players_max >= 3 else 0.0
+            s = (
+                1.0
+                if game.players_max >= 4 and game.players_min <= 3
+                else 0.5 if game.players_max >= 3 else 0.0
+            )
         else:  # 5+
             # none of the starters go 5+, so low
             s = 0.0 if game.players_max < 5 else 1.0
@@ -205,7 +279,12 @@ def score_game(game: Game, answers: Dict[str, str], weights: Dict[str, float]) -
     # complexity
     if "complexity" in answers:
         v = answers["complexity"]
-        target_w = {"light": 2.0, "medium": 3.0, "heavy": 4.0, "any": game.complexity}.get(v, 3.0)
+        target_w = {
+            "light": 2.0,
+            "medium": 3.0,
+            "heavy": 4.0,
+            "any": game.complexity,
+        }.get(v, 3.0)
         diff = abs(game.complexity - target_w)
         s = clamp01(1.0 - (diff / 2.0))  # 0 diff → 1.0 ; 2.0 diff → 0.0
         details["complexity"] = s * weights.get("complexity", 1.0)
@@ -222,7 +301,7 @@ def score_game(game: Game, answers: Dict[str, str], weights: Dict[str, float]) -
                 "exploration": ["exploration", "narrative", "adventure"],
                 "survival": ["survival", "city-building", "post-apocalyptic"],
                 "sci-fi": ["sci-fi", "space"],
-                "innovation": ["innovation", "civilization", "history"]
+                "innovation": ["innovation", "civilization", "history"],
             }
             desired = set(keyword_map.get(v, []))
             overlap = len(desired.intersection(set(game.themes)))
@@ -234,7 +313,11 @@ def score_game(game: Game, answers: Dict[str, str], weights: Dict[str, float]) -
     if "campaign" in answers:
         v = answers["campaign"]
         if v == "campaign_yes":
-            s = 1.0 if "campaign" in game.mechanics or "campaign" in game.themes else (1.0 if "story" in game.mechanics else 0.0)
+            s = (
+                1.0
+                if "campaign" in game.mechanics or "campaign" in game.themes
+                else (1.0 if "story" in game.mechanics else 0.0)
+            )
         elif v == "campaign_no":
             # reward non-campaign one-shots (Ark Nova, Inventions, SETI)
             s = 1.0 if "campaign" not in game.mechanics else 0.2
@@ -261,7 +344,9 @@ def score_game(game: Game, answers: Dict[str, str], weights: Dict[str, float]) -
         # Heuristic: heavy euros → low randomness; coop survival/story → medium/high
         desired = {"low": 0.2, "medium": 0.5, "high": 0.8, "any": 0.5}[v]
         game_r = 0.5
-        if game.name.lower().startswith("inventions") or game.name.lower().startswith("ark nova"):
+        if game.name.lower().startswith("inventions") or game.name.lower().startswith(
+            "ark nova"
+        ):
             game_r = 0.3
         if game.coop and ("survival" in game.themes or "narrative" in game.themes):
             game_r = 0.6
@@ -271,14 +356,13 @@ def score_game(game: Game, answers: Dict[str, str], weights: Dict[str, float]) -
 
     return total, details
 
+
 # ------------------------------ UI Helpers ----------------------------------
 def tag_row(text, tooltip=None):
-    st.markdown(
-        f"<span class='tag'>{text}</span>",
-        unsafe_allow_html=True
-    )
+    st.markdown(f"<span class='tag'>{text}</span>", unsafe_allow_html=True)
     if tooltip:
         st.tooltip(tooltip)
+
 
 def game_card(game: Game, score: float, details: Dict[str, float]):
     with st.container(border=True):
@@ -303,13 +387,20 @@ def game_card(game: Game, score: float, details: Dict[str, float]):
             with st.expander("Why this score? (per-question contributions)"):
                 df = pd.DataFrame([details]).T.reset_index()
                 df.columns = ["question", "contribution"]
-                st.dataframe(df, hide_index=True, use_container_width=True, column_config={"contribution": {"format": "{:.2f}"}})
+                st.dataframe(
+                    df,
+                    hide_index=True,
+                    use_container_width=True,
+                    column_config={"contribution": {"format": "{:.2f}"}},
+                )
             if game.notes:
                 st.caption(game.notes)
 
+
 # ------------------------------ Streamlit App -------------------------------
 st.set_page_config(page_title="Board Game Recommender", page_icon="🎲", layout="wide")
-st.markdown("""
+st.markdown(
+    """
 <style>
 .tag {
   display: inline-block;
@@ -322,7 +413,9 @@ st.markdown("""
   margin-right: 6px;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 st.title("🎲 Board Game Recommender")
 
@@ -331,7 +424,9 @@ right = st.sidebar
 right.header("Controls")
 mode = right.radio("Mode", ["Survey", "Admin"], horizontal=False)
 if mode == "Admin":
-    pw = right.text_input("Admin password", type="password", help="Set ADMIN_PASSWORD env var to change")
+    pw = right.text_input(
+        "Admin password", type="password", help="Set ADMIN_PASSWORD env var to change"
+    )
     if pw != ADMIN_PASSWORD:
         st.warning("Enter the correct admin password to edit settings.")
         st.stop()
@@ -355,7 +450,9 @@ if mode == "Survey":
             labels = [o["label"] for o in opts]
             values = [o["value"] for o in opts]
             default_index = 0
-            selected_label = st.selectbox(q["text"], labels, index=default_index, key=f"q_{key}")
+            selected_label = st.selectbox(
+                q["text"], labels, index=default_index, key=f"q_{key}"
+            )
             v = values[labels.index(selected_label)]
             answers[key] = v
 
@@ -371,7 +468,9 @@ if mode == "Survey":
         scores.sort(key=lambda x: x[1], reverse=True)
         topk = scores[:3]
 
-        st.success(f"Top recommendation: **{topk[0][0].name}** (score {topk[0][1]:.2f})")
+        st.success(
+            f"Top recommendation: **{topk[0][0].name}** (score {topk[0][1]:.2f})"
+        )
         cols = st.columns(3)
         for i, (g, s, det) in enumerate(topk):
             with cols[i]:
@@ -383,15 +482,20 @@ if mode == "Survey":
                 "ts": datetime.datetime.now().isoformat(timespec="seconds"),
                 "user": user_name.strip(),
                 "answers_json": json.dumps(answers, ensure_ascii=False),
-                "ranking_json": json.dumps([{"game_id": g.id, "score": s} for g, s, _ in scores], ensure_ascii=False)
+                "ranking_json": json.dumps(
+                    [{"game_id": g.id, "score": s} for g, s, _ in scores],
+                    ensure_ascii=False,
+                ),
             }
             append_response(row)
+            # (kept) Existing caption
             st.caption("Saved to responses.csv")
         else:
             st.caption("Tip: enter your name to save your result.")
 else:
     st.subheader("Admin")
-    tabs = st.tabs(["Games", "Questions", "Responses"])
+    # ✨ NEW: add Leaderboard tab without removing others
+    tabs = st.tabs(["Games", "Questions", "Responses", "Leaderboard"])
 
     with tabs[0]:
         st.markdown("### Current games")
@@ -399,8 +503,12 @@ else:
             with st.expander(f"{g.name}"):
                 c1, c2 = st.columns([2, 1])
                 with c1:
-                    st.write(f"**Players:** {g.players_min}–{g.players_max}  |  **Solo:** {g.solo}  |  **Coop:** {g.coop}")
-                    st.write(f"**Playtime:** {g.playtime_min}–{g.playtime_max}  |  **Weight:** {g.complexity}")
+                    st.write(
+                        f"**Players:** {g.players_min}–{g.players_max}  |  **Solo:** {g.solo}  |  **Coop:** {g.coop}"
+                    )
+                    st.write(
+                        f"**Playtime:** {g.playtime_min}–{g.playtime_max}  |  **Weight:** {g.complexity}"
+                    )
                     st.write(f"**Themes:** {', '.join(g.themes)}")
                     st.write(f"**Mechanics:** {', '.join(g.mechanics)}")
                     st.write(f"**Image URL:** {g.image_url or '—'}")
@@ -414,20 +522,32 @@ else:
         st.divider()
         st.markdown("### Add / Edit a game")
         with st.form("add_game"):
-            is_edit = st.checkbox("Edit existing", value=False, help="Enable to update a game by id")
+            is_edit = st.checkbox(
+                "Edit existing", value=False, help="Enable to update a game by id"
+            )
             gid = st.text_input("ID (unique, snake_case)", value="new_game")
             name = st.text_input("Name", value="New Game")
             bgg = st.text_input("BGG slug (optional)", value="")
             pmin, pmax = st.columns(2)
-            players_min = pmin.number_input("Players min", min_value=1, max_value=8, value=1, step=1)
-            players_max = pmax.number_input("Players max", min_value=1, max_value=12, value=4, step=1)
+            players_min = pmin.number_input(
+                "Players min", min_value=1, max_value=8, value=1, step=1
+            )
+            players_max = pmax.number_input(
+                "Players max", min_value=1, max_value=12, value=4, step=1
+            )
             solo, coop = st.columns(2)
             solo_b = solo.checkbox("Has solo", value=False)
             coop_b = coop.checkbox("Is cooperative", value=False)
             tmin, tmax = st.columns(2)
-            playtime_min = tmin.number_input("Playtime min (min)", min_value=10, max_value=600, value=60, step=5)
-            playtime_max = tmax.number_input("Playtime max (min)", min_value=10, max_value=600, value=120, step=5)
-            complexity = st.slider("Complexity (1–5)", min_value=1.0, max_value=5.0, value=3.0, step=0.1)
+            playtime_min = tmin.number_input(
+                "Playtime min (min)", min_value=10, max_value=600, value=60, step=5
+            )
+            playtime_max = tmax.number_input(
+                "Playtime max (min)", min_value=10, max_value=600, value=120, step=5
+            )
+            complexity = st.slider(
+                "Complexity (1–5)", min_value=1.0, max_value=5.0, value=3.0, step=0.1
+            )
             themes = st.text_input("Themes (comma-separated)", value="")
             mechanics = st.text_input("Mechanics (comma-separated)", value="")
             image_url = st.text_input("Image URL", value="")
@@ -472,10 +592,18 @@ else:
 
     with tabs[1]:
         st.markdown("### Questions & Weights")
-        st.caption("You can use the fallback set below or ask GPT to propose a fresh set tailored to your current games.")
+        st.caption(
+            "You can use the fallback set below or ask GPT to propose a fresh set tailored to your current games."
+        )
         st.write("**Current weights:**")
         for k, v in qs.weights.items():
-            qs.weights[k] = st.slider(f"Weight for '{k}'", min_value=0.0, max_value=2.0, value=float(v), step=0.1)
+            qs.weights[k] = st.slider(
+                f"Weight for '{k}'",
+                min_value=0.0,
+                max_value=2.0,
+                value=float(v),
+                step=0.1,
+            )
         if st.button("Save weights"):
             save_questions(qs)
             st.success("Weights saved.")
@@ -484,7 +612,9 @@ else:
         st.write("**Current questions:**")
         for i, q in enumerate(qs.questions):
             with st.expander(q.get("text", f"Q{i+1}")):
-                new_text = st.text_input("Question text", value=q.get("text",""), key=f"qt_{i}")
+                new_text = st.text_input(
+                    "Question text", value=q.get("text", ""), key=f"qt_{i}"
+                )
                 qs.questions[i]["text"] = new_text
                 # options editor
                 opt_df = pd.DataFrame(q.get("options", []))
@@ -510,7 +640,48 @@ else:
         if RESPONSES_CSV.exists():
             df = pd.read_csv(RESPONSES_CSV)
             st.dataframe(df, use_container_width=True, hide_index=True)
-            st.download_button("Download CSV", data=RESPONSES_CSV.read_bytes(), file_name="responses.csv")
+            st.download_button(
+                "Download CSV",
+                data=RESPONSES_CSV.read_bytes(),
+                file_name="responses.csv",
+            )
         else:
             st.info("No responses yet.")
 
+    # ✨ NEW: Leaderboard tab (Top 3 by total points across ALL Supabase responses)
+    with tabs[3]:
+        st.markdown("### 🏆 Top 3 Games (Total Points from Supabase)")
+        if not supabase:
+            st.info(
+                "Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in secrets/.env to enable the leaderboard."
+            )
+        else:
+            all_responses = fetch_all_responses()
+            if all_responses.empty:
+                st.info("No responses yet in Supabase.")
+            else:
+                # Compute totals (sum only; ignore per-question details)
+                weights = qs.weights
+                totals = {g.id: 0.0 for g in games}
+                for _, row in all_responses.iterrows():
+                    answers = row.get("answers_json", {})
+                    if isinstance(answers, str):
+                        try:
+                            answers = json.loads(answers)
+                        except Exception:
+                            answers = {}
+                    # score each game for this response
+                    for g in games:
+                        s, _ = score_game(g, answers, weights)
+                        totals[g.id] += s
+
+                leaderboard = [
+                    {"Game": g.name, "Total Points": round(totals[g.id], 2)}
+                    for g in games
+                ]
+                top3 = sorted(
+                    leaderboard, key=lambda x: x["Total Points"], reverse=True
+                )[:3]
+                st.dataframe(
+                    pd.DataFrame(top3), hide_index=True, use_container_width=True
+                )
